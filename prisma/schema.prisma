@@ -1,0 +1,161 @@
+// FlotaManager — Schema PostgreSQL
+// FASE B: activo cuando la app se migre a servidor con PostgreSQL
+// FASE A: la fuente de datos es Google Sheets (ver src/lib/sheets.ts)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum VehicleStatus {
+  ACTIVE
+  WORKSHOP
+  INACTIVE
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  MAINTENANCE
+}
+
+enum WorkedDayStatus {
+  WORKED
+  NOT_WORKED
+  WORKSHOP
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+}
+
+enum DriverStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum DocumentType {
+  SOAT
+  TECNO
+  PROPERTY
+  OTHER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole
+  createdAt    DateTime @default(now())
+
+  transactions Transaction[]
+}
+
+model Driver {
+  id          String       @id @default(cuid())
+  name        String
+  document    String?
+  phone       String?
+  email       String?
+  bankAccount String?
+  status      DriverStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+
+  vehicle     Vehicle?
+  transactions Transaction[]
+}
+
+model Vehicle {
+  id         String        @id @default(cuid())
+  plate      String        @unique
+  alias      String
+  brand      String
+  model      String
+  year       Int?
+  color      String
+  status     VehicleStatus @default(ACTIVE)
+  currentKm  Int?
+  soatExpiry DateTime?
+  tecnoExpiry DateTime?
+  photoUrl   String?
+  notes      String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  driverId   String?       @unique
+  driver     Driver?       @relation(fields: [driverId], references: [id])
+
+  transactions Transaction[]
+  workedDays   WorkedDay[]
+  documents    VehicleDocument[]
+  runtQueries  RuntQuery[]
+}
+
+model Transaction {
+  id            String          @id @default(cuid())
+  date          DateTime
+  km            Int?
+  type          TransactionType
+  subtype       String?
+  amount        Int             // en pesos colombianos, sin decimales
+  pendingAmount Int             @default(0)
+  notes         String?
+  invoiceUrl    String?
+  createdAt     DateTime        @default(now())
+
+  vehicleId  String
+  vehicle    Vehicle @relation(fields: [vehicleId], references: [id])
+
+  driverId   String?
+  driver     Driver? @relation(fields: [driverId], references: [id])
+
+  createdById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id])
+}
+
+model WorkedDay {
+  id        String          @id @default(cuid())
+  date      DateTime
+  status    WorkedDayStatus @default(WORKED)
+  notes     String?
+  createdAt DateTime        @default(now())
+
+  vehicleId String
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@unique([vehicleId, date])
+}
+
+model VehicleDocument {
+  id             String       @id @default(cuid())
+  docType        DocumentType
+  documentNumber String?
+  issueDate      DateTime?
+  expiryDate     DateTime?
+  insurer        String?
+  cost           Int?
+  fileUrl        String?
+  createdAt      DateTime     @default(now())
+
+  vehicleId String
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+}
+
+model RuntQuery {
+  id            String    @id @default(cuid())
+  queryDate     DateTime  @default(now())
+  soatExpiry    DateTime?
+  soatInsurer   String?
+  tecnoExpiry   DateTime?
+  vehicleStatus String?
+  rawResponse   Json?
+
+  vehicleId String
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+}
