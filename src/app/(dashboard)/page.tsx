@@ -1,81 +1,159 @@
 import { auth } from '@/lib/auth'
-import { Car, ArrowLeftRight, CalendarDays, TrendingUp } from 'lucide-react'
+import { Car, ArrowLeftRight, CalendarDays, TrendingUp, AlertCircle, Plus } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { VEHICLES_DATA } from '@/types'
 
 export default async function DashboardPage() {
   const session = await auth()
   const isOwner = session?.user?.role === 'OWNER'
+  const firstName = session?.user?.name?.split(' ')[0]
+
+  const activeVehicles = VEHICLES_DATA.filter(v => v.status === 'ACTIVE')
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">
-          Bienvenido, {session?.user?.name?.split(' ')[0]}
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          {isOwner ? 'Panel de control — FlotaManager' : 'Panel de administración'}
-        </p>
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-8">
+
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Hola, {firstName}
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            {new Date().toLocaleDateString('es-CO', {
+              weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+              timeZone: 'America/Bogota',
+            })}
+          </p>
+        </div>
+        <Link href="/transactions/new">
+          <Button size="sm" className="gap-1.5">
+            <Plus className="h-4 w-4" />
+            Nueva transacción
+          </Button>
+        </Link>
       </div>
 
+      {/* Métricas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card>
-          <CardHeader className="pb-1 pt-4 px-4">
-            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-              <Car className="h-3.5 w-3.5" /> Vehículos
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <p className="text-2xl font-bold">5</p>
-            <p className="text-xs text-muted-foreground">activos</p>
+        <Card className="border-0 shadow-sm">
+          <CardContent className="pt-5 pb-4 px-5">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Vehículos</p>
+              <div className="bg-blue-50 p-1.5 rounded-md">
+                <Car className="h-3.5 w-3.5 text-blue-600" />
+              </div>
+            </div>
+            <p className="text-3xl font-bold tracking-tight">{activeVehicles.length}</p>
+            <p className="text-xs text-muted-foreground mt-1">activos este mes</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-1 pt-4 px-4">
-            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-              <ArrowLeftRight className="h-3.5 w-3.5" /> Transacciones
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <p className="text-2xl font-bold">0</p>
-            <p className="text-xs text-muted-foreground">este mes</p>
+        <Card className="border-0 shadow-sm">
+          <CardContent className="pt-5 pb-4 px-5">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Registros</p>
+              <div className="bg-violet-50 p-1.5 rounded-md">
+                <ArrowLeftRight className="h-3.5 w-3.5 text-violet-600" />
+              </div>
+            </div>
+            <p className="text-3xl font-bold tracking-tight">0</p>
+            <p className="text-xs text-muted-foreground mt-1">este mes</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-1 pt-4 px-4">
-            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-              <CalendarDays className="h-3.5 w-3.5" /> Días
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <p className="text-2xl font-bold">—</p>
-            <p className="text-xs text-muted-foreground">trabajados</p>
+        <Card className="border-0 shadow-sm">
+          <CardContent className="pt-5 pb-4 px-5">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Días</p>
+              <div className="bg-green-50 p-1.5 rounded-md">
+                <CalendarDays className="h-3.5 w-3.5 text-green-600" />
+              </div>
+            </div>
+            <p className="text-3xl font-bold tracking-tight">—</p>
+            <p className="text-xs text-muted-foreground mt-1">trabajados</p>
           </CardContent>
         </Card>
 
         {isOwner && (
-          <Card>
-            <CardHeader className="pb-1 pt-4 px-4">
-              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                <TrendingUp className="h-3.5 w-3.5" /> Ingresos
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-4">
-              <p className="text-2xl font-bold">—</p>
-              <p className="text-xs text-muted-foreground">este mes</p>
+          <Card className="border-0 shadow-sm">
+            <CardContent className="pt-5 pb-4 px-5">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Ingresos</p>
+                <div className="bg-emerald-50 p-1.5 rounded-md">
+                  <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
+                </div>
+              </div>
+              <p className="text-3xl font-bold tracking-tight">—</p>
+              <p className="text-xs text-muted-foreground mt-1">este mes</p>
             </CardContent>
           </Card>
         )}
       </div>
 
-      <Card>
-        <CardContent className="pt-6 text-center text-muted-foreground text-sm py-12">
-          <Car className="h-10 w-10 mx-auto mb-3 opacity-20" />
-          <p>Los módulos se están construyendo.</p>
-          <p className="mt-1">Usa el menú lateral para navegar.</p>
-        </CardContent>
-      </Card>
+      {/* Vehículos */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Flota
+          </h2>
+          <Link href="/vehicles" className="text-xs text-primary hover:underline">
+            Ver todos
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          {activeVehicles.map((v) => (
+            <Link key={v.plate} href={`/vehicles/${v.plate}`}>
+              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="pt-4 pb-4 px-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-mono text-sm font-semibold tracking-widest">
+                      {v.plate}
+                    </span>
+                    <Badge variant="secondary" className="text-xs font-normal">
+                      {v.alias}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {v.brand} {v.model}
+                  </p>
+                  {v.currentKm && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {v.currentKm.toLocaleString('es-CO')} km
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Estado del admin: qué falta registrar */}
+      {!isOwner && (
+        <Card className="border-0 shadow-sm bg-amber-50 border-l-4 border-l-amber-400">
+          <CardContent className="pt-4 pb-4 px-5 flex items-start gap-3">
+            <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-amber-900">
+                Pendiente esta semana
+              </p>
+              <p className="text-xs text-amber-700 mt-0.5">
+                Registra los pagos semanales de los conductores.
+              </p>
+              <Link href="/transactions/new">
+                <Button size="sm" variant="outline" className="mt-2 h-7 text-xs border-amber-300 text-amber-800 hover:bg-amber-100">
+                  Registrar pago
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
     </div>
   )
 }
